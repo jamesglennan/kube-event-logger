@@ -34,9 +34,9 @@ func signalHandler() (stopCh <-chan struct{}) {
 
 func getKubeConfig(path string) *rest.Config {
 	log.Debugf("Kubeconfig path: %s:", path)
-	clientConfigLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-	clientConfigLoadingRules.DefaultClientConfig = &clientcmd.DefaultClientConfig
-	clientConfigLoadingRules.ExplicitPath = path
+	clientConfigLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()    //kube client loading rules
+	clientConfigLoadingRules.DefaultClientConfig = &clientcmd.DefaultClientConfig //Get default client
+	clientConfigLoadingRules.ExplicitPath = path                                  // load explicit path, this is ignored if empty
 	clientConfig := clientcmd.NewInteractiveDeferredLoadingClientConfig(clientConfigLoadingRules, &clientcmd.ConfigOverrides{}, os.Stdin)
 	cfg, err := clientConfig.ClientConfig()
 
@@ -61,15 +61,15 @@ func printEvent(obj interface{}) {
 }
 
 func main() {
-	stopCh := signalHandler()
-	// add flags
-	var kubeConfigPath string
-	var debug bool
+	stopCh := signalHandler() //The
+	log.SetFormatter(&log.JSONFormatter{})
+
+	var kubeConfigPath string //Path to kubeconfig
+	var debug bool            // Set debug logs flag
 	flag.StringVar(&kubeConfigPath, "kubeconfig", "", "Path to kubeconfig, defaults to use .kube in home direcotry or in-cluster config if run in a container")
 	flag.BoolVar(&debug, "debug", false, "Set debug logs")
 	flag.Parse()
 
-	log.SetFormatter(&log.JSONFormatter{})
 	if debug {
 		log.SetLevel(log.DebugLevel)
 	} else {
@@ -83,7 +83,7 @@ func main() {
 	eventInformer := kubeInformerFactory.Core().V1().Events().Informer()
 
 	eventInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: printEvent,
+		AddFunc: printEvent, // process and print each event
 	})
 	eventInformer.Run(stopCh)
 
